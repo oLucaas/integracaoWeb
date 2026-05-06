@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro Clientes</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
     <h1>Cadastro de Cliente</h1>
@@ -23,5 +23,29 @@
 
         <button type="submit">Cadastrar</button>
     </form>
+        <h2>Lista de Clientes</h2>
+        <table border="1">
+            <thead>
+                <th>CPF</th>
+                <th>Primeiro Nome</th>
+                <th>Sobrenome</th>
+                <th>Idade</th>
+            </thead>
+            <tbody>
+                {% for cliente in clientes %}
+                    <tr>
+                        <td>{{cliente.CPF}}</td>
+                        <td>{{cliente.PRIMEIRO_NOME}}</td>
+                        <td>{{cliente.SOBRENOME}}</td>
+                        <td>{{cliente.IDADE}}</td>
+                    </tr>
+                    <td>
+                        <a href="{{url_for('excluir', cpf=cliente.CPF)}}"
+                        onclick="return confirm('Deseja remover este cliente?')">
+                        Excluir</a>
+                    </td>
+                {% endfor %}
+            </tbody>
+        </table>
 </body>
 </html>
