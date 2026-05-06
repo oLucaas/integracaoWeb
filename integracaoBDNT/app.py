@@ -10,7 +10,7 @@ app = Flask(__name__)
 bd_config = {
     'host':'localhost',
     'user':'root',
-    'password':'@',
+    'password':'@Lucas2612',
     'database':'cadastro'
 }
 
@@ -62,8 +62,21 @@ def cadastrar():
         return f"Erro ao gravar no banco: {err}"
 
 #Cria a rota para exclusão
-@app.route()
+@app.route('/excluir/<cpf>')
 def excluir(cpf):
-    pass
+    try:
+        conectar = mysql.connector.connect(**bd_config)
+        cursor = conectar.cursor()
+
+        cursor.execute("DELETE FROM cliente WHERE CPF = %s", [cpf])
+
+        conectar.commit()
+        cursor.close()
+        conectar.close()
+
+        return redirect(url_for('index'))
+    except mysql.connector.Error as err:
+        return f"Erro ao excluir: {err}"
+        
 if __name__ == '__main__':
     app.run(debug=True)
