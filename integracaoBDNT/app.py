@@ -10,7 +10,7 @@ app = Flask(__name__)
 bd_config = {
     'host':'localhost',
     'user':'root',
-    'password':'@Lucas2612',
+    'password':'@',
     'database':'cadastro'
 }
 
