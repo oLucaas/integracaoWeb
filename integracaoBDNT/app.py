@@ -1,82 +1,93 @@
-#import do flask para criação do servidor
-#render_template para criar uma "ponte" com html
-#request para capturar os dados digitados
+#Import do framework
+#Import do render_template para leitura do HTML
+#request para catputura dos dados
 from flask import Flask, render_template, redirect, url_for, request
-import mysql.connector
+#biblioteca para criar conexão com mysql
+import mysql.connector 
 
-#"Ajuda" o Flask a localizar os caminhos dos arquivos
 app = Flask(__name__)
 
+#Cria conexão com o MySQL
 bd_config = {
     'host':'localhost',
     'user':'root',
-    'password':'@',
-    'database':'cadastro'
+    'password':'@Lucas2612',
+    'database':'cadastro1'
 }
 
-#Criando a rota para acessar o arquivo HTML
+
+#Definição da rota para o index
 @app.route('/')
 def index():
+    return render_template('index.html')
+
+@app.route('/formulario')
+def exibir_formulario():
+    return render_template('cadastro.html')
+
+@app.route('/clientes')
+def tabela_clientes():
     try:
-        #Cria conexão com MySQL e permite adicionar comando SQL
-        conectar = mysql.connector.connect(**bd_config)
-        cursor = conectar.cursor(dictionary=True)
+        conexaoIndex = mysql.connector.connect(**bd_config) 
+        cursoIndex = conexaoIndex.cursor(dictionary=True)
+        cursoIndex.execute("SELECT * FROM cliente1")
+        #Variável que armazena os dados
+        lista_clientes = cursoIndex.fetchall()
 
-        #Seleção da tabela
-        cursor.execute("SELECT CPF, PRIMEIRO_NOME, SOBRENOME, IDADE FROM cliente")
-        lista_clientes = cursor.fetchall()
+        cursoIndex.close()
+        conexaoIndex.close()
 
-        cursor.close()
-        conectar.close()
-        return render_template('index.html', clientes=lista_clientes)
-    
-    except mysql.connector.Error as err:
-        return f"Erro ao carregar a tabela: {err}"
-    
-#Cria uma rota para acessar o formulário
+        return render_template('tabela.html',clientes=lista_clientes)
+        
+    except mysql.connector.Error as err: 
+        return f"Erro ao carregar a lista:{err}"
+     
 @app.route('/cadastrar', methods=['POST'])
-def cadastrar():
-    #Bloco para armazenar os dados digiados
-    cpf = request.form['cpf']
-    primeiro_nome = request.form['primeiro_nome']
-    sobrenome = request.form['sobrenome']
-    idade = request.form['idade']
-
+def criar_cadastro():
     try:
-        #verificando conexão com MySQL
-        conectar = mysql.connector.connect(**bd_config)
-        #Variável que permite a escrever SQL
-        cursor = conectar.cursor()
+        #Recebe os dados do formulário
+        cpf = request.form['cpf']
+        primeiro_nome = request.form['primeiro_nome']
+        sobrenome = request.form['sobrenome']
+        idade = request.form['idade']
 
-        query = "INSERT INTO cliente(CPF,PRIMEIRO_NOME,SOBRENOME,IDADE) VALUES (%s,%s,%s,%s)"
-        cursor.execute(query,(cpf,primeiro_nome,sobrenome,idade))
+        #Criar conexão com o banco de dados
+        conexao = mysql.connector.connect(**bd_config)
+        
+        #Levar instruções SQL do Python até o banco de dados
+        curso = conexao.cursor()
 
-        #Atualiza as alterações e fecha as conexões
-        conectar.commit()
-        cursor.close()
-        conectar.close()
+        query = "INSERT INTO cliente1 (CPF, PRIMEIRO_NOME, SOBRENOME, IDADE) VALUES (%s,%s,%s,%s)"
+        curso.execute(query,(cpf,primeiro_nome,sobrenome,idade))
 
-        return f"<h3>Cliente {primeiro_nome} salvo com sucesso!</h3> <a href='/'>Voltar</a>"
+        #salvar as alterações
+        #fechar o cursor
+        #fechar a conexão com o banco de dados.
+        conexao.commit() #conexao
+        curso.close()
+        conexao.close()
+
+        return redirect(url_for('exibir_formulario'))
     
     except mysql.connector.Error as err:
-        return f"Erro ao gravar no banco: {err}"
+        return f"Erro ao gravar no Banco: {err}" 
 
-#Cria a rota para exclusão
 @app.route('/excluir/<cpf>')
 def excluir(cpf):
     try:
-        conectar = mysql.connector.connect(**bd_config)
-        cursor = conectar.cursor()
+        conexao = mysql.connector.connect(**bd_config)
+        curso = conexao.cursor()
 
-        cursor.execute("DELETE FROM cliente WHERE CPF = %s", [cpf])
+        curso.execute("DELETE FROM cliente1 WHERE CPF = %s", (cpf,))
+        conexao.commit() #conexao
+        curso.close()
+        conexao.close()
 
-        conectar.commit()
-        cursor.close()
-        conectar.close()
-
-        return redirect(url_for('index'))
+        return redirect(url_for('tabela_clientes'))
     except mysql.connector.Error as err:
         return f"Erro ao excluir: {err}"
-        
-if __name__ == '__main__':
+
+if __name__ ==  '__main__':
     app.run(debug=True)
+
+
